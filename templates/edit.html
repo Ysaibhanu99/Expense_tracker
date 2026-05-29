@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Edit your expense details.">
+    <title>Edit Expense — Expense Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- ========== HEADER ========== -->
+        <header class="header">
+            <div class="header-icon">✏️</div>
+            <h1>Edit Expense</h1>
+            <p class="subtitle">Update the details below</p>
+        </header>
+
+        <!-- ========== FLASH MESSAGES ========== -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }}" id="flash-msg">
+                    <span>{{ message }}</span>
+                    <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- ========== EDIT FORM ========== -->
+        <section class="card form-card">
+            <h2 class="card-title">
+                <span class="card-icon">📝</span>
+                Update Expense
+            </h2>
+            <form method="POST" action="/edit/{{ expense[0] }}" id="edit-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="title">Title</label>
+                        <input type="text" id="title" name="title" value="{{ expense[1] }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Amount (₹)</label>
+                        <input type="number" id="amount" name="amount" value="{{ expense[2] }}" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category" name="category" required>
+                            <option value="Food" {{ 'selected' if expense[3] == 'Food' }}>🍔 Food</option>
+                            <option value="Transport" {{ 'selected' if expense[3] == 'Transport' }}>🚌 Transport</option>
+                            <option value="Study" {{ 'selected' if expense[3] == 'Study' }}>📚 Study</option>
+                            <option value="Entertainment" {{ 'selected' if expense[3] == 'Entertainment' }}>🎬 Entertainment</option>
+                            <option value="Other" {{ 'selected' if expense[3] == 'Other' }}>📦 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date" name="date" value="{{ expense[4].strftime('%Y-%m-%d') }}" required>
+                    </div>
+                </div>
+                <div class="edit-actions">
+                    <button type="submit" class="btn btn-add" id="btn-update-expense">
+                        <span>Update Expense</span>
+                    </button>
+                    <a href="/" class="btn btn-cancel" id="btn-cancel-edit">Cancel</a>
+                </div>
+            </form>
+        </section>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

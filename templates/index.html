@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A simple expense tracker to manage your daily expenses. Add, view, and delete expenses easily.">
+    <meta name="description" content="A simple expense tracker to manage your daily expenses. Add, view, filter, and visualize expenses easily.">
     <title>Expense Tracker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +20,18 @@
             <h1>Expense Tracker</h1>
             <p class="subtitle">Track your daily spending with ease</p>
         </header>
+
+        <!-- ========== FLASH MESSAGES ========== -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }}" id="flash-msg">
+                    <span>{{ message }}</span>
+                    <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
         <!-- ========== ADD EXPENSE FORM ========== -->
         <section class="card form-card">
@@ -59,6 +71,80 @@
             </form>
         </section>
 
+        <!-- ========== MONTHLY SUMMARY ========== -->
+        {% if monthly_summary %}
+        <section class="card summary-card">
+            <h2 class="card-title">
+                <span class="card-icon">📊</span>
+                Monthly Summary
+                <span class="badge badge-total">Total: ₹{{ "%.2f"|format(grand_total) }}</span>
+            </h2>
+            <div class="summary-grid">
+                {% for month_data in monthly_summary %}
+                <div class="summary-item">
+                    <span class="summary-month">{{ month_data[0] }}</span>
+                    <span class="summary-amount">₹{{ "%.2f"|format(month_data[1]) }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ========== CHARTS ========== -->
+        {% if expenses %}
+        <section class="card charts-card">
+            <h2 class="card-title">
+                <span class="card-icon">📈</span>
+                Spending Overview
+            </h2>
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <h3 class="chart-title">By Category</h3>
+                    <canvas id="category-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3 class="chart-title">Monthly Trend</h3>
+                    <canvas id="monthly-chart"></canvas>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- ========== FILTER BAR ========== -->
+        <section class="card filter-card">
+            <h2 class="card-title">
+                <span class="card-icon">🔍</span>
+                Filter Expenses
+            </h2>
+            <form method="GET" action="/" id="filter-form" class="filter-form">
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="filter-category">Category</label>
+                        <select id="filter-category" name="category">
+                            <option value="">All Categories</option>
+                            <option value="Food" {{ 'selected' if filter_category == 'Food' }}>🍔 Food</option>
+                            <option value="Transport" {{ 'selected' if filter_category == 'Transport' }}>🚌 Transport</option>
+                            <option value="Study" {{ 'selected' if filter_category == 'Study' }}>📚 Study</option>
+                            <option value="Entertainment" {{ 'selected' if filter_category == 'Entertainment' }}>🎬 Entertainment</option>
+                            <option value="Other" {{ 'selected' if filter_category == 'Other' }}>📦 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filter-date-from">From</label>
+                        <input type="date" id="filter-date-from" name="date_from" value="{{ filter_date_from }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="filter-date-to">To</label>
+                        <input type="date" id="filter-date-to" name="date_to" value="{{ filter_date_to }}">
+                    </div>
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-filter" id="btn-apply-filter">Apply</button>
+                        <a href="/" class="btn btn-clear" id="btn-clear-filter">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </section>
+
         <!-- ========== EXPENSES TABLE ========== -->
         <section class="card table-card">
             <h2 class="card-title">
@@ -79,7 +165,7 @@
                             <th>Amount (₹)</th>
                             <th>Category</th>
                             <th>Date</th>
-                            <th>Action</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -95,11 +181,16 @@
                             </td>
                             <td class="cell-date">{{ expense[4].strftime('%d %b %Y') }}</td>
                             <td class="cell-action">
-                                <form method="POST" action="/delete/{{ expense[0] }}" class="delete-form">
-                                    <button type="submit" class="btn btn-delete" id="btn-delete-{{ expense[0] }}">
-                                        Delete
-                                    </button>
-                                </form>
+                                <div class="action-buttons">
+                                    <a href="/edit/{{ expense[0] }}" class="btn btn-edit" id="btn-edit-{{ expense[0] }}">
+                                        Edit
+                                    </a>
+                                    <form method="POST" action="/delete/{{ expense[0] }}" class="delete-form">
+                                        <button type="submit" class="btn btn-delete" id="btn-delete-{{ expense[0] }}">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -121,6 +212,17 @@
         </footer>
 
     </div>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+    <!-- Chart data from Flask -->
+    <script>
+        const chartCategoryLabels = {{ chart_category_labels|safe }};
+        const chartCategoryValues = {{ chart_category_values|safe }};
+        const chartMonthlyLabels = {{ chart_monthly_labels|safe }};
+        const chartMonthlyValues = {{ chart_monthly_values|safe }};
+    </script>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
