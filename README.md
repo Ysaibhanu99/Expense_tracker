@@ -1,6 +1,6 @@
 # Expense Tracker
 
-A simple expense tracker I built while learning Flask and databases. Nothing fancy — just a basic CRUD app where you can add expenses, see them in a table, and delete the ones you don't need.
+A simple expense tracker I built while learning Flask and databases. Started as a basic CRUD app and then I kept adding stuff to it — now it has charts, filters, monthly summaries, edit functionality, the whole thing.
 
 I built this as my first proper project to understand how a backend actually connects to a database and renders stuff on the frontend. Before this I was just following tutorials without building anything real, so this was my way of actually applying what I learned.
 
@@ -9,11 +9,18 @@ The problem it solves is pretty straightforward — keeping track of where your 
 ## Features
 
 - Add an expense with title, amount, category, and date
-- View all your expenses in a table (newest first)
-- Delete any expense you dont need anymore
-- Date auto-fills to today so you dont have to pick it every time
-- Asks for confirmation before deleting (so you dont accidentally remove stuff)
-- Categories are color coded so its easy to scan through
+- Edit or update any existing expense
+- Delete expenses (with confirmation so you dont accidentally nuke stuff)
+- View all expenses in a table sorted by date
+- Filter by category, date range, or both
+- Monthly summary cards showing how much you spent each month
+- Charts — doughnut chart for category breakdown, bar chart for monthly trends
+- Grand total display across all expenses
+- Flash messages for success/error feedback
+- Date auto-fills to today
+- Categories are color coded
+- Error handling — app wont crash if the database is down, shows proper messages
+- Dark theme with a pretty clean UI
 - Works on mobile too, mostly
 
 ## Tech Stack
@@ -24,8 +31,10 @@ The problem it solves is pretty straightforward — keeping track of where your 
 | Backend | Python (Flask) |
 | Database | PostgreSQL on Neon (serverless) |
 | DB Driver | psycopg2 |
+| Charts | Chart.js |
+| Deployment | Render |
 
-No frameworks on the frontend. No Bootstrap. Just plain HTML/CSS/JS. I wanted to understand how things work before adding layers on top.
+No frameworks on the frontend. No Bootstrap. Just plain HTML/CSS/JS and Chart.js for the graphs. I wanted to understand how things work before adding layers on top.
 
 ## Screenshots
 
@@ -64,6 +73,19 @@ You'll need Python installed on your machine. Also you need a Neon account (its 
 
 The table gets created automatically when you start the app for the first time so you dont need to run any SQL manually.
 
+## Live Demo
+
+This app is deployed on Render. The database runs on Neon (serverless PostgreSQL).
+
+If you want to deploy your own version:
+1. Fork this repo
+2. Create a free account on [render.com](https://render.com)
+3. Create a new Web Service and connect your GitHub repo
+4. Set the build command to `pip install -r requirements.txt`
+5. Set the start command to `gunicorn app:app`
+6. Add `DATABASE_URL` as an environment variable with your Neon connection string
+7. Hit deploy and wait a couple minutes
+
 ## What I Learned
 
 This was my first time connecting a backend to an actual cloud database, and honestly it was confusing at first. I kept getting SSL errors with Neon until I figured out the connection string format.
@@ -75,19 +97,22 @@ Some things I picked up along the way:
 - Jinja2 templating — passing data from Python to HTML felt weird at first but it makes sense now
 - How to structure a project with separate files for db logic and app logic instead of dumping everything in one file
 - CSS variables and how to make a dark theme without it looking terrible
+- Chart.js — rendering graphs from database data passed through Flask
+- Filtering with SQL query params — building dynamic WHERE clauses
+- Flash messages in Flask for user feedback
+- Deploying a Flask app on Render with gunicorn
 
 Its not perfect code but I actually understand every line of it, which was the whole point.
 
 ## Future Improvements
 
-Some things I want to add when I come back to this project:
+Most of the stuff I originally planned is already done now (edit, charts, filters, summary, error handling). Some things I might add later if I feel like it:
 
-- Edit/update an expense (right now you can only add or delete)
-- Monthly summary showing total spent
-- Filter by category or date range
-- Charts or graphs to visualize spending
-- Maybe user login so multiple people can use it
-- Better error handling (right now if the DB is down it just crashes lol)
+- User login so multiple people can track their own expenses
+- Export to CSV or PDF
+- Recurring expenses (like subscriptions that repeat every month)
+- Budget limits per category with alerts
+- A dashboard with more detailed analytics
 
 ## Note
 
