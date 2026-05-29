@@ -77,6 +77,8 @@ The table gets created automatically when you start the app for the first time s
 
 This app is deployed on Render. The database runs on Neon (serverless PostgreSQL).
 
+**Check it out here:** [https://expense-tracker-k8ls.onrender.com](https://expense-tracker-k8ls.onrender.com)
+
 If you want to deploy your own version:
 1. Fork this repo
 2. Create a free account on [render.com](https://render.com)
