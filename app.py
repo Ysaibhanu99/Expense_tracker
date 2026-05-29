@@ -241,8 +241,13 @@ def update_expense(id):
 
 
 # ------------------------------------
-# Entry point
+# Initialize DB on import (works with gunicorn too)
+# ------------------------------------
+init_db()
+
+
+# ------------------------------------
+# Entry point (local development)
 # ------------------------------------
 if __name__ == "__main__":
-    init_db()  # Ensure table exists on startup
     app.run(debug=True)
